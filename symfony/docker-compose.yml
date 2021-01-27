@@ -1,0 +1,67 @@
+version: '3.7'
+services:
+  php-fpm:
+    container_name: php-fpm
+    build: ./docker/php-fpm
+    ports:
+      - 9000:9001
+    volumes:
+      - .:/app/:cached
+    networks:
+      - site
+
+  nginx:
+    container_name: nginx
+    build: ./docker/nginx
+    ports:
+      - "8000:80"
+    depends_on:
+      - php-fpm
+    networks:
+      - site
+    
+      depends_on:
+      - mysql
+    networks:
+      - mysql
+    volumes:
+      - .:/app/:cached
+networks:
+  site:
+
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password0
+      MYSQL_DATABASE: symfony-demo
+      MYSQL_USER: symfony-demo
+      MYSQL_PASSWORD: symfony-demo
+    networks:
+      - mysql
+networks:
+  mysql:
+volumes:
+  db_data:
+  
+  phpmyadmin:
+    depends_on:
+      - mysql
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    links:
+        - mysql
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: password0
+    networks:
+      - site
+      - mysql
